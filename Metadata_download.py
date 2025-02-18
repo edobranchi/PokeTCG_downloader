@@ -1,4 +1,3 @@
-
 import requests
 
 from getReqFunctions import singleSetRequest
