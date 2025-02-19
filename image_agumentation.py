@@ -18,12 +18,28 @@ common_transformations = [
     A.GaussianBlur(blur_limit=(3, 7), p=0.5),
     A.RandomGamma(p=0.5),
     A.CLAHE(p=0.5),
-    A.RandomCrop(width=200, height=200, p=0.5),
+    A.RandomCrop(width=224, height=224, p=0.5),
     A.RGBShift(r_shift_limit=20, g_shift_limit=20, b_shift_limit=20, p=0.5),
+    A.Affine( scale=(0.1,0.3), rotate=(-10,10), p=0.5),
+    # Minor shift/scale/rotate
+    A.Perspective(scale=(0.05, 0.1), p=0.5),  # Simulate slight perspective distortion
+    A.CoarseDropout(num_holes_range=(1,8), hole_height_range=(8,24), hole_width_range=(8,24), p=0.5),  # Simulate occlusion
+    A.GaussNoise(std_range=(0.1, 0.5), per_channel=True, p=0.5),  # Introduce noise
+    A.ElasticTransform(alpha=1.0, sigma=50.0, interpolation=1,  p=0.5), # Simulate slight warping
+    A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.7),
+    A.HueSaturationValue(hue_shift_limit=5, sat_shift_limit=20, val_shift_limit=10, p=0.5),
+    A.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05, p=0.5),
+    # Geometric transformations
+    A.Affine(scale=(0.95, 1.05), translate_percent=(-0.05, 0.05), rotate=(-7, 7), shear=(-5, 5), p=0.5),
+    # Blur and noise (camera effects)
+    A.GaussianBlur(blur_limit=(1, 3), p=0.4),
+    A.MotionBlur(blur_limit=(3, 5), p=0.3),
+    # Occlusion and damage simulation
+    A.GridDistortion(num_steps=5, distort_limit=0.2, p=0.3)
 ]
 
 
-def process_folder(input_path, output_path, images_per_original=10):
+def process_folder(input_path, output_path, images_per_original=40):
     """Process a single folder and maintain structure"""
     input_path = Path(input_path)
     output_path = Path(output_path)
@@ -77,10 +93,13 @@ def process_folder(input_path, output_path, images_per_original=10):
 
             # Save augmented images
             for i, img in enumerate(all_transformed_images):
-                img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                output_filename = f"{img_path.stem}_aug_{i}{img_path.suffix}"
-                output_file_path = output_path / output_filename
-                cv2.imwrite(str(output_file_path), img_bgr)
+                if not os.path.exists(f"{img_path.stem}_aug_{i}{img_path.suffix}"):
+                    img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                    output_filename = f"{img_path.stem}_aug_{i}{img_path.suffix}"
+                    output_file_path = output_path / output_filename
+                    cv2.imwrite(str(output_file_path), img_bgr)
+                else:
+                    print("skipping")
 
 
 def process_all_folders(root_folder):
@@ -104,7 +123,7 @@ def generate_transformed_images(image, process_batch_number, images_queue=None):
     transformed_images = []
 
     for _ in range(process_batch_number):
-        num_transforms = random.randint(1, 5)
+        num_transforms = random.randint(1, 7)
         selected_transforms = random.sample(common_transformations, num_transforms)
         transform = A.Compose(selected_transforms)
         transformed_image = transform(image=image)["image"]

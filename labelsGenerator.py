@@ -4,6 +4,7 @@ import requests
 from tqdm import tqdm
 
 def generateLabels(setId, setName):
+    setName=setName.replace(" ","")
     # Apre la cartella metadata e legge il file del set passato
     metadata_dir = "metadata_dir"
     file_path = os.path.join(metadata_dir, f"cards_metadata_{setName}.json")
@@ -37,7 +38,7 @@ def generateLabels(setId, setName):
         try:
             #estraggo id e nome della carta
             card_id = card_obtained["id"]
-            card_name = card_obtained["name"]
+            card_name = card_obtained["name"].replace(" ","")
 
             #sostuisco il campo image della carta ottenuta dalla request, col percorso locale dell'immagine scaricata
             card_obtained["image"]=f"card_images_high_png/card_images_{setName}/{card_id}_{card_name}_high.png".replace(" ","")
