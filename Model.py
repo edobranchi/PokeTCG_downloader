@@ -19,6 +19,7 @@ json_folder = "annotations_dir/labels_BaseSet"
 
 # Get all image paths
 image_paths = sorted(glob.glob(os.path.join(image_folder, "*.png")))
+
 # Optional: Test inference on a few validation examples
 def test_model_inference(dataset, num_samples=5):
     print("\nTesting model on sample images:")
@@ -80,6 +81,7 @@ numeric_labels = [label_to_index[label] for label in labels]
 # Convert to one-hot encoding
 one_hot_labels = tf.keras.utils.to_categorical(numeric_labels, num_classes=len(unique_labels))
 
+#TODO: Salvare le labels in un txt
 
 # Function to load and preprocess images
 def load_image(image_path, label):
