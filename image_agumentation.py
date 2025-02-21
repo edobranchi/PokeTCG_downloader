@@ -39,7 +39,7 @@ common_transformations = [
 ]
 
 
-def process_folder(input_path, output_path, images_per_original=40):
+def process_folder(input_path, output_path, images_per_original=100):
     """Process a single folder and maintain structure"""
     input_path = Path(input_path)
     output_path = Path(output_path)

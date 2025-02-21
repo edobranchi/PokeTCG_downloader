@@ -8,6 +8,7 @@ from tensorflow.keras import layers, models
 import logging
 from tensorflow.keras.preprocessing import image as tf_image
 import useModel
+from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
 
 
 
@@ -84,9 +85,9 @@ one_hot_labels = tf.keras.utils.to_categorical(numeric_labels, num_classes=len(u
 def load_image(image_path, label):
     img = tf.io.read_file(image_path)
     img = tf.image.decode_png(img, channels=3)
-    img = tf.image.resize(img, (224, 224)) / 255.0  # Normalize
+    img = tf.image.resize(img, (224, 224))
+    img = preprocess_input(img)  # Apply MobileNetV3 normalization
     return img, label
-
 
 # Create datasets with proper shuffling
 # First, shuffle with a fixed seed for reproducibility
@@ -106,10 +107,10 @@ val_labels = shuffled_labels[train_size:]
 
 # Create separate datasets for train and validation
 train_dataset = tf.data.Dataset.from_tensor_slices((train_paths, train_labels))
-train_dataset = train_dataset.map(load_image).batch(32).shuffle(buffer_size=1000)
+train_dataset = train_dataset.map(load_image).batch(64).shuffle(buffer_size=1000)
 
 val_dataset = tf.data.Dataset.from_tensor_slices((val_paths, val_labels))
-val_dataset = val_dataset.map(load_image).batch(32)
+val_dataset = val_dataset.map(load_image).batch(64)
 
 # Print dataset info
 print(f"Total unique cards: {len(unique_labels)}")
@@ -129,8 +130,9 @@ data_augmentation = keras.Sequential([
 IMG_SIZE = (224, 224)
 NUM_CLASSES = len(unique_labels)
 
+
 # Load MobileNetV3 as the base model
-base_model = keras.applications.MobileNetV3Small(
+base_model = keras.applications.MobileNetV3Large(
     input_shape=IMG_SIZE + (3,),
     include_top=False,
     weights="imagenet"
@@ -145,14 +147,18 @@ x = data_augmentation(inputs)
 x = base_model(x)
 x = layers.GlobalAveragePooling2D()(x)
 x = layers.BatchNormalization()(x)
-x = layers.Dense(256, activation='relu')(x)
+x = layers.Dense(512, activation='relu', kernel_regularizer=keras.regularizers.l2(0.001))(x)
+x = layers.BatchNormalization()(x)
+x = layers.Dropout(0.5)(x)
+x = layers.Dense(256, activation='relu',kernel_regularizer=keras.regularizers.l2(0.001))(x)
+x = layers.BatchNormalization()(x)
 x = layers.Dropout(0.5)(x)  # Increased dropout to prevent overfitting
 outputs = layers.Dense(NUM_CLASSES, activation='softmax')(x)
 model = keras.Model(inputs, outputs)
 
 # Compile the model
 model.compile(
-    optimizer=keras.optimizers.Adam(learning_rate=0.001),
+    optimizer=keras.optimizers.Adam(learning_rate=0.0001),
     loss='categorical_crossentropy',
     metrics=['accuracy']
 )
@@ -164,32 +170,37 @@ early_stopping = keras.callbacks.EarlyStopping(
     restore_best_weights=True
 )
 
+
+
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+
 reduce_lr = keras.callbacks.ReduceLROnPlateau(
     monitor='val_loss',
     factor=0.5,
-    patience=5,
-    min_lr=0.00001
+    patience=3,
+    min_lr=0.000001
 )
 
 # First round of training with frozen base model
 print("Initial training with frozen base model...")
+
 history_initial = model.fit(
     train_dataset,
-    epochs=70,
+    epochs=40,
     validation_data=val_dataset,
-    callbacks=[early_stopping, reduce_lr]
+    callbacks=[early_stopping,reduce_lr]
 )
 
 test_model_inference(val_dataset,num_samples=10)
 
-# Fine-tuning: Unfreeze some layers of the base model
+# # Fine-tuning: Unfreeze some layers of the base model
 # print("Fine-tuning with partially unfrozen base model...")
 # base_model.trainable = True
-# fine_tune_at = 10  # Unfreeze the last 100 layers
+# fine_tune_at = 20  # Unfreeze the last 100 layers
 # for layer in base_model.layers[:-fine_tune_at]:
 #     layer.trainable = False
 #
-# #Recompile with lower learning rate for fine-tuning
+# # #Recompile with lower learning rate for fine-tuning
 # model.compile(
 #     optimizer=keras.optimizers.Adam(learning_rate=0.0001),
 #     loss='categorical_crossentropy',
@@ -201,7 +212,7 @@ test_model_inference(val_dataset,num_samples=10)
 #     train_dataset,
 #     epochs=20,
 #     validation_data=val_dataset,
-#     callbacks=[early_stopping, reduce_lr]
+#     callbacks=[early_stopping,reduce_lr]
 # )
 
 # Evaluate the model
@@ -234,149 +245,3 @@ image = useModel.preprocess_image_tflite(image_path)
 useModel.predict_tflite(image,index_to_label)
 
 
-# def test_model_inference(dataset=None, num_samples=5, custom_image=None):
-#     """
-#     Test the full Keras model on either dataset samples or a custom image
-#     """
-#     print("\nTesting full Keras model:")
-#
-#     # Case 1: Testing on a custom image
-#     if custom_image is not None:
-#         print("Testing on custom image...")
-#         # If custom_image is a path, load it
-#         if isinstance(custom_image, str):
-#             img = tf.io.read_file(custom_image)
-#             img = tf.image.decode_image(img, channels=3)
-#             img = tf.image.resize(img, (224, 224)) / 255.0
-#         else:
-#             img = custom_image  # Assume it's already a preprocessed tensor
-#
-#         pred = model.predict(tf.expand_dims(img, 0))[0]
-#
-#         # Get top 2 predictions
-#         top_indices = np.argsort(pred)[-2:][::-1]
-#         pred_idx = top_indices[0]
-#         second_pred_idx = top_indices[1]
-#
-#         pred_name = index_to_label[pred_idx]
-#         second_pred_name = index_to_label[second_pred_idx]
-#
-#         confidence = pred[pred_idx] * 100
-#         second_confidence = pred[second_pred_idx] * 100
-#
-#         print(f"Custom image prediction:")
-#         print(f"  Predicted: {pred_name} (Confidence: {confidence:.2f}%)")
-#         print(f"  Second choice: {second_pred_name} (Confidence: {second_confidence:.2f}%)")
-#         print()
-#         return
-#
-#     # Case 2: Testing on dataset samples
-#     if dataset is None:
-#         print("Error: Please provide either a dataset or a custom image.")
-#         return
-#
-#     for images, labels in dataset.take(1):
-#         for i in range(min(num_samples, len(images))):
-#             pred = model.predict(tf.expand_dims(images[i], 0))[0]
-#
-#             # Get top 2 predictions
-#             top_indices = np.argsort(pred)[-2:][::-1]
-#             pred_idx = top_indices[0]
-#             second_pred_idx = top_indices[1]
-#
-#             true_idx = np.argmax(labels[i])
-#
-#             pred_name = index_to_label[pred_idx]
-#             second_pred_name = index_to_label[second_pred_idx]
-#             true_name = index_to_label[true_idx]
-#
-#             confidence = pred[pred_idx] * 100
-#             second_confidence = pred[second_pred_idx] * 100
-#
-#             print(f"Sample {i + 1}:")
-#             print(f"  Predicted: {pred_name} (Confidence: {confidence:.2f}%)")
-#             print(f"  Second choice: {second_pred_name} (Confidence: {second_confidence:.2f}%)")
-#             print(f"  Actual: {true_name}")
-#             print(f"  {'✓ Correct' if pred_idx == true_idx else '✗ Incorrect'}")
-#             print()
-#
-#
-# def preprocess_image_tflite(image_path):
-#     """Preprocess an image for TFLite model inference"""
-#     # Load the image
-#     img = tf_image.load_img(image_path, target_size=(224, 224))
-#     img_array = tf_image.img_to_array(img)
-#     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
-#     img_array = img_array.astype(np.float32)  # Convert to float32 for TFLite
-#     img_array = img_array / 255.0  # Normalize
-#     return img_array
-#
-#
-# def predict_tflite(image_path, index_to_label):
-#     """
-#     Run inference with TFLite model
-#     If index_to_label is None, it will use the global variable
-#     """
-#     # Use global if not provided
-#
-#
-#     # Preprocess the image
-#     image = preprocess_image_tflite(image_path)
-#
-#     # Get tensor details (input and output tensors)
-#     input_details = interpreter.get_input_details()
-#     output_details = interpreter.get_output_details()
-#
-#     # Set the tensor data (input image)
-#     interpreter.set_tensor(input_details[0]['index'], image)
-#
-#     # Run inference
-#     interpreter.invoke()
-#
-#     # Get the output predictions
-#     predictions = interpreter.get_tensor(output_details[0]['index'])[0]
-#
-#     # Get top 2 predictions
-#     top_indices = np.argsort(predictions)[-2:][::-1]
-#     pred_idx = top_indices[0]
-#     second_pred_idx = top_indices[1]
-#
-#     pred_name = index_to_label[pred_idx]
-#     second_pred_name = index_to_label[second_pred_idx]
-#
-#     confidence = predictions[pred_idx] * 100
-#     second_confidence = predictions[second_pred_idx] * 100
-#
-#     print(f"TFLite prediction for {image_path}:")
-#     print(f"  Predicted: {pred_name} (Confidence: {confidence:.2f}%)")
-#     print(f"  Second choice: {second_pred_name} (Confidence: {second_confidence:.2f}%)")
-#     print()
-#
-#     return predictions, pred_idx
-
-
-# # Example of how to use both inference methods:
-# def compare_models(image_path,index_to_label):
-#     """Compare predictions between full model and TFLite model"""
-#     print(f"\nComparing model predictions for: {image_path}")
-#     print("-" * 50)
-#
-#     # Full model prediction
-#     test_model_inference(custom_image=image_path)
-#
-#     # TFLite model prediction
-#     predict_tflite(image_path,index_to_label)
-#
-#     print("-" * 50)
-#
-#
-# # Usage example
-# if __name__ == "__main__":
-#     # Test on validation dataset
-#     print("Testing on validation dataset:")
-#     test_model_inference(val_dataset, num_samples=3)
-#
-#     # Test on a specific image
-#     test_image = "ala.jpg"
-#     if os.path.exists(test_image):
-#         compare_models(test_image,index_to_label)
