@@ -1,15 +1,8 @@
 #Recupera tutti i set disponibili
 import json
 import os
-
 import requests
 from tqdm import tqdm
-
-import settings
-
-API_URL_ALLSETS= f"https://api.tcgdex.net/v2/en/sets"
-response = requests.get(API_URL_ALLSETS)
-sets=response.json()
 
 
 def singleSetRequest(setId, setName):
@@ -46,7 +39,7 @@ def ImgDownload(setId, setName, metadata_dir):
         cards = json.load(file)
 
     #Crea la cartella "card_images_{qualità immagine}_{estensione immagine}"
-    image_dir = f"./card_images_{settings.IMAGE_QUALITY}_{settings.IMG_EXTENSION}"
+    image_dir = f"./card_images_{IMAGE_QUALITY}_{IMG_EXTENSION}"
     os.makedirs(image_dir, exist_ok=True)
 
     # Crea la subfolder per il singolo set "card_images_{nome set}"
@@ -63,7 +56,7 @@ def ImgDownload(setId, setName, metadata_dir):
     for card in tqdm(cards['cards'], desc=f"Downloading {setName} images", unit="card"):
         try:
             #Nei metadati della carta c'è il link all'immagine, ci appendo, qualità e estensione desiderata
-            image_url = card["image"] + "/" + f"{settings.IMAGE_QUALITY}.{settings.IMG_EXTENSION}"
+            image_url = card["image"] + "/" + f"{IMAGE_QUALITY}.{IMG_EXTENSION}"
 
             if image_url:
                 #annoto Id e nome della carta
@@ -72,7 +65,7 @@ def ImgDownload(setId, setName, metadata_dir):
 
                 #Appende il percorso della cartella del set con ID, name, quality, and extension
                 file_path = os.path.join(image_dir_path,
-                                         f"{card_id}_{card_name}_{settings.IMAGE_QUALITY}.{settings.IMG_EXTENSION}")
+                                         f"{card_id}_{card_name}_{IMAGE_QUALITY}.{IMG_EXTENSION}")
 
                 #Rimuove gli spazi nel nome del file
                 file_path = ''.join(file_path.split())
@@ -177,9 +170,17 @@ def generateLabels(setId, setName):
 
 if __name__ == "__main__":
 
+    #Images settings
+    IMAGE_QUALITY = "low"
+    IMG_EXTENSION = "png"
+
     #Vuoto per scaricarli tutti altrimenti prendere dalla lista in basso
     setId_to_download = ""
     setName_to_download = ""
+
+    API_URL_ALLSETS = f"https://api.tcgdex.net/v2/en/sets"
+    response = requests.get(API_URL_ALLSETS)
+    sets = response.json()
 
     if setId_to_download == "" and setName_to_download == "":
         #Cicla su ogni set disponibile
@@ -187,12 +188,12 @@ if __name__ == "__main__":
             setId=set["id"]
             setName= set["name"]
             print(setId, setName)
-            #
-            # #singleSetRequest(...) scarica e organizza in cartelle il singolo set
-            # singleSetRequest(setId,setName)
-            #
-            # #Per ogni set genera labels/annotazioni
-            # generateLabels(setId,setName)
+
+            #singleSetRequest(...) scarica e organizza in cartelle il singolo set
+            singleSetRequest(setId,setName)
+
+            #Per ogni set genera labels/annotazioni
+            generateLabels(setId,setName)
     else:
         setId = set["id"]
         setName = set["name"]

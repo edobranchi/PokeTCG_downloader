@@ -9,6 +9,9 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+#Simple transformation of images, list of possible transformation is in "common_transformation" variable
+
+
 # Your existing transformations
 common_transformations = [
     A.HorizontalFlip(p=0.5),

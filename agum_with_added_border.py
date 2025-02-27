@@ -2,10 +2,14 @@ import cv2
 import numpy as np
 from pathlib import Path
 import albumentations as A
-import matplotlib.pyplot as plt
 import random
 from scipy.ndimage import gaussian_filter
-from multiprocessing import Process, Queue, cpu_count
+
+
+# Agumentation of the card and adding a border around the card in a random way
+# take an input root an output root and a number of agumented cards needed in output.
+
+# ES. num_aguments = 30 ----> generates 30 differents augumented copy of each card
 
 
 def create_diverse_background(width, height, style='random'):
