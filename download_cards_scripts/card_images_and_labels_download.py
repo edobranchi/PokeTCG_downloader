@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def singleSetRequest(setId, setName):
     #Crea la cartella "metadata_dir"
-    metadata_dir = "metadata_dir"
+    metadata_dir = "../metadata_dir"
     os.makedirs(metadata_dir, exist_ok=True)
 
     #GET request per ottenere il set passato
@@ -16,9 +16,10 @@ def singleSetRequest(setId, setName):
 
     if response.status_code == 200:
         cards = response.json()
-
+        setName=setName.replace(" ","")
         #Crea file json "cards_metadata_{Nome set}" con i metadati del set
         file_path = os.path.join(metadata_dir, f"cards_metadata_{setName}.json")
+
         with open(file_path, "w") as file:
             json.dump(cards, file, indent=4)
 
@@ -100,13 +101,13 @@ def ImgDownload(setId, setName, metadata_dir):
 def generateLabels(setId, setName):
     setName=setName.replace(" ","")
     # Apre la cartella metadata e legge il file del set passato
-    metadata_dir = "metadata_dir"
+    metadata_dir = "../metadata_dir"
     file_path = os.path.join(metadata_dir, f"cards_metadata_{setName}.json")
     with open(file_path, "r") as file:
         cards = json.load(file)
 
     # Crea la cartella "annotations_dir"
-    annotations_dir = "annotations_dir"
+    annotations_dir = "../annotations_dir"
     os.makedirs(annotations_dir, exist_ok=True)
 
     # Crea la subfolder specifica del set
