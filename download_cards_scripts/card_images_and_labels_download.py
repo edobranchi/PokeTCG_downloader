@@ -4,7 +4,7 @@ import requests
 from tqdm import tqdm
 
 
-def singleSetRequest(setId, setName, metadata_dir="./metadata_dir"):
+def singleSetRequest(setId, setName, metadata_dir="../assets/metadata_dir"):
     # Create the "metadata_dir" folder
     os.makedirs(metadata_dir, exist_ok=True)
 
@@ -36,7 +36,7 @@ def ImgDownload(setId, setName, metadata_dir):
         cards = json.load(file)
 
     # Create the folder to store images
-    image_dir_path = "assets/card_images"
+    image_dir_path = "../assets/card_images"
     os.makedirs(image_dir_path, exist_ok=True)
 
     skipped_count = 0
@@ -84,7 +84,7 @@ def ImgDownload(setId, setName, metadata_dir):
     print(f"Skipped (already existing): {skipped_count}")
 
 
-def generateLabels(setId, setName, metadata_dir="./metadata_dir"):
+def generateLabels(setId, setName, metadata_dir="../assets/metadata_dir"):
     setName = setName.replace(" ", "")
     # Open the metadata folder and read the set file
     file_path = os.path.join(metadata_dir, f"cards_metadata_{setName}.json")
@@ -92,7 +92,7 @@ def generateLabels(setId, setName, metadata_dir="./metadata_dir"):
         cards = json.load(file)
 
     # Create the "labels_dir" folder
-    annotations_dir = "./assets/image_labels"
+    annotations_dir = "../assets/image_labels"
     os.makedirs(annotations_dir, exist_ok=True)
 
     skipped_count = 0
@@ -120,7 +120,7 @@ def generateLabels(setId, setName, metadata_dir="./metadata_dir"):
                 continue
 
             # Replace the image field with the local image path
-            card_obtained["image"] = f"assets/card_images/{card_id}_{card_name}_{IMAGE_QUALITY}.{IMG_EXTENSION}".replace(" ", "")
+            card_obtained["image"] = f"../assets/card_images/{card_id}_{card_name}_{IMAGE_QUALITY}.{IMG_EXTENSION}".replace(" ", "")
             card_obtained["image"] = ''.join(card_obtained["image"].split())
         except Exception:
             print(f"Failed to create label, ID not present")
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     setId_to_download = ""
     setName_to_download = ""
-    metadata_dir = "./metadata_dir"
+    metadata_dir = "../assets/metadata_dir"
 
     API_URL_ALLSETS = f"https://api.tcgdex.net/v2/en/sets"
     response = requests.get(API_URL_ALLSETS)
@@ -156,10 +156,10 @@ if __name__ == "__main__":
 
     if setId_to_download == "" and setName_to_download == "":
         for set in sets:
-            singleSetRequest(set["id"], set["name"])
-            ImgDownload(set["id"], set["name"], metadata_dir)
-            generateLabels(set["id"], set["name"])
+            singleSetRequest(set["id"], set["name"],metadata_dir)
+            #ImgDownload(set["id"], set["name"], metadata_dir)
+            generateLabels(set["id"], set["name"],metadata_dir)
     else:
-        singleSetRequest(setId_to_download, setName_to_download)
-        ImgDownload(setId_to_download, setName_to_download, metadata_dir)
-        generateLabels(setId_to_download, setName_to_download)
+        singleSetRequest(setId_to_download, setName_to_download,metadata_dir)
+        #ImgDownload(setId_to_download, setName_to_download, metadata_dir)
+        generateLabels(setId_to_download, setName_to_download,metadata_dir)

@@ -5,8 +5,8 @@ This repository contains two Python scripts designed to download and process Pok
 ## Overview
 
 The repository includes two main scripts:
-1. **Card Data Downloader** (`card_images_and_labels_download.py`) - Downloads card metadata, images, and generates labels for individual cards
-2. **Set Collection Generator** (`set_list_collections_generation.py`) - Creates organized collection data and downloads set logo images
+1. **Card Downloader** (`card_images_and_labels_download.py`) - Downloads card metadata, images, and generates labels for individual cards
+2. **Set Logo Downloader** (`set_list_collections_generation.py`) - Creates organized collection data and downloads set logo images
 
 Both scripts utilize the [TCGdex API](https://api.tcgdex.net/) to fetch Pokemon TCG information.
 
@@ -34,11 +34,11 @@ The first script (`card_images_and_labels_download.py`) downloads detailed card 
 ### Directory Structure
 
 ```
-├── metadata_dir/                  # Card set metadata
-│   └── cards_metadata_SetName.json
 ├── assets/
 │   ├── card_images/               # Card images
 │   │   └── cardID_cardName_quality.png
+│   ├── metadata_dir/                  # Card set metadata
+│   │   └── cards_metadata_SetName.json
 │   └── image_labels/              # Card label files
 │       └── labels_cardID_cardName.json
 ```
@@ -263,7 +263,7 @@ The second script `set_list_collections_generation.py` organizes sets by series 
 ### Directory Structure
 
 ```
-├── set_logos_generated_json_dir/  # Generated collection data
+├── download_logos_script/  # Generated collection data
 │   └── collections_logo_list.json
 ├── assets/
 │   └── set_logos/                 # Set logo images
