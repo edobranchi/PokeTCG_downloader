@@ -2,6 +2,7 @@ import json
 import os
 
 import requests
+from tqdm import tqdm
 
 
 #TODO:pulirlo dai set che non voglio far vedere
@@ -30,7 +31,7 @@ def set_list_collections_generation():
 
 
         #Call for every single set
-        for set in sets_obtained:
+        for set in tqdm(sets_obtained,unit="sets",desc=f"Processing sets"):
             API_URL_SINGLE_SET= f"https://api.tcgdex.net/v2/en/sets/{set['id']}"
             response = requests.get(API_URL_SINGLE_SET)
             sets=response.json()
@@ -52,12 +53,12 @@ def set_list_collections_generation():
                     })
                     break
 
-        generated_json_dir = "generated_json_dir"
+        generated_json_dir = "set_logos_generated_json_dir"
         os.makedirs(generated_json_dir, exist_ok=True)
-        collection_page_json="collection_page_json"
-        subfolder_json = os.path.join(generated_json_dir, collection_page_json)
-        os.makedirs(subfolder_json, exist_ok=True)
-        file_path = os.path.join(subfolder_json, f"collections_logo_list.json")
+        # collection_page_json="collection_page_json"
+        # subfolder_json = os.path.join(generated_json_dir, collection_page_json)
+        os.makedirs(generated_json_dir, exist_ok=True)
+        file_path = os.path.join(generated_json_dir, f"collections_logo_list.json")
         with open(file_path, "w") as json_file:
             json.dump(series_list, json_file, indent=4)
 

@@ -44,7 +44,9 @@ def ImgDownload(setId, setName, metadata_dir):
     os.makedirs(image_dir, exist_ok=True)
 
     # Crea la subfolder per il singolo set "card_images_{nome set}"
-    image_dir_set=f"card_images_{setName}"
+    #image_dir_set=f"card_images_{setName}"
+    image_dir_set ="card_images_BaseSet"
+
     image_dir_set = image_dir_set.replace(" ","")
     image_dir_path = os.path.join(image_dir, image_dir_set)
     os.makedirs(image_dir_path, exist_ok=True)
@@ -106,8 +108,8 @@ def generateLabels(setId, setName):
     with open(file_path, "r") as file:
         cards = json.load(file)
 
-    # Crea la cartella "annotations_dir"
-    annotations_dir = "../annotations_dir"
+    # Crea la cartella "labels_dir"
+    annotations_dir = "../labels_dir"
     os.makedirs(annotations_dir, exist_ok=True)
 
     # Crea la subfolder specifica del set
@@ -194,7 +196,7 @@ if __name__ == "__main__":
             singleSetRequest(setId,setName)
 
             #Per ogni set genera labels/annotazioni
-            generateLabels(setId,setName)
+            #generateLabels(setId,setName)
     else:
         setId = set["id"]
         setName = set["name"]
