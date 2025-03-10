@@ -1,6 +1,5 @@
 import json
 import os
-
 import requests
 from tqdm import tqdm
 
@@ -31,7 +30,7 @@ def set_list_collections_generation():
 
 
         #Call for every single set
-        for set in tqdm(sets_obtained,unit="sets",desc=f"Processing sets"):
+        for set in tqdm(sets_obtained,unit="sets",desc=f"Processing sets list"):
             API_URL_SINGLE_SET= f"https://api.tcgdex.net/v2/en/sets/{set['id']}"
             response = requests.get(API_URL_SINGLE_SET)
             sets=response.json()
@@ -62,10 +61,41 @@ def set_list_collections_generation():
         with open(file_path, "w") as json_file:
             json.dump(series_list, json_file, indent=4)
 
-        print("Collections logo list saved to {}".format(file_path))
     except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as e:
         print("Connection error")
 
 
+def download_sets_logo_images(json_path):
+
+    image_logo_path = "../assets/set_logos"
+    os.makedirs(image_logo_path, exist_ok=True)
+
+    with open(json_path, "r") as file:
+        data = json.load(file)
+
+    try:
+        for category in data:
+            for set_data in tqdm(category["sets"], unit="sets", desc=f"Processing {category['name']} sets"):
+                logo = set_data.get("logo", "")
+                if logo and logo != "---":
+                    API_URL_SINGLE_LOGO = logo + ".png"
+
+                    try:
+                        logo_img = requests.get(API_URL_SINGLE_LOGO).content
+                        logo_file_name = set_data.get("id") + (set_data.get("name").replace(" ", ""))
+                        logo_file_path = os.path.join(image_logo_path, logo_file_name + ".png")
+
+                        with open(logo_file_path, "wb") as img_file:
+                            img_file.write(logo_img)
+
+                    except requests.exceptions.RequestException as e:
+                        print(f"Failed to download {API_URL_SINGLE_LOGO}: {e}")
+
+    except Exception as e:
+        print(f"Cannot recover logo: {e}")
+
+
 if __name__ == "__main__":
     set_list_collections_generation()
+    json_path="set_logos_generated_json_dir/collections_logo_list.json"
+    download_sets_logo_images(json_path)

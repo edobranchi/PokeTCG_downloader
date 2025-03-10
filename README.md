@@ -1,60 +1,61 @@
-# Pokémon TCG Set Fetcher
+# Pokemon TCG Data Processing Scripts
+
+This repository contains two Python scripts designed to download and process Pokemon Trading Card Game (TCG) data from the TCGdex API. These tools help you create a local database of card metadata, images, and set information for use in applications.
 
 ## Overview
-This script fetches Pokémon Trading Card Game (TCG) set metadata, downloads card images, and generates annotations for each card. It interacts with the TCGdex API to retrieve up-to-date information on card sets and individual cards.
 
-## Features
-- Fetch metadata for all available Pokémon TCG sets.
-- Download card images in a specified format and quality.
-- Generate labels/annotations for each card, storing them in JSON format.
+The repository includes two main scripts:
+1. **Card Data Downloader** (`card_images_and_labels_download.py`) - Downloads card metadata, images, and generates labels for individual cards
+2. **Set Collection Generator** (`set_list_collections_generation.py`) - Creates organized collection data and downloads set logo images
 
-## Requirements
-- Python 3.x
-- `requests` library
-- `tqdm` library
-- Internet connection
+Both scripts utilize the [TCGdex API](https://api.tcgdex.net/) to fetch Pokemon TCG information.
 
-Install dependencies with:
-```sh
-pip install requests tqdm
+## Prerequisites
+
+- Python 3.6+
+- Required Python packages:
+  - `requests`
+  - `tqdm`
+  - `json` (built-in)
+  - `os` (built-in)
+
+## Card image and data downloader
+
+The first script (`card_images_and_labels_download.py`) downloads detailed card metadata, card images, and generates label files for each card.
+
+### Features
+
+- Downloads metadata for complete card sets
+- Saves card images in configurable quality
+- Generates structured label files for each card
+- Tracks progress with progress bars
+- Skips already downloaded content to avoid duplication
+
+### Directory Structure
+
+```
+├── metadata_dir/                  # Card set metadata
+│   └── cards_metadata_SetName.json
+├── assets/
+│   ├── card_images/               # Card images
+│   │   └── cardID_cardName_quality.png
+│   └── image_labels/              # Card label files
+│       └── labels_cardID_cardName.json
 ```
 
-## Configuration
-Modify the following global variables to adjust image settings:
-```python
-IMAGE_QUALITY = "low"  # Set image quality (e.g., "low", "high")
-IMG_EXTENSION = "png"   # Set image file extension (e.g., "png", "jpg")
-```
+### Usage
 
-## Usage
-### Run the script
-```sh
-python script.py
-```
+You can use the script in two ways:
 
-By default, it fetches metadata for all available sets, downloads card images, and generates labels. To fetch a specific set, modify:
-```python
-setId_to_download = "<SET_ID>"
-setName_to_download = "<SET_NAME>"
-```
+1. **Download All Sets**:
+   - Leave `setId_to_download` and `setName_to_download` empty
+   - The script will download all available sets
 
-### Functions
-#### `singleSetRequest(setId, setName, metadata_dir="./metadata_dir")`
-Fetches metadata for a given set and stores it in `metadata_dir`.
+2. **Download Specific Set**:
+   - Set `setId_to_download` to the desired set ID
+   - Set `setName_to_download` to the corresponding set name
 
-#### `ImgDownload(setId, setName, metadata_dir)`
-Downloads images of all cards in a set and stores them in `assets/card_images`.
-
-#### `generateLabels(setId, setName, metadata_dir="./metadata_dir")`
-Generates JSON labels for each card, linking images and metadata, and saves them in `assets/image_labels`.
-
-## Data Storage
-- **Metadata files**: Stored in `./metadata_dir/cards_metadata_<SetName>.json`
-- **Card images**: Stored in `./assets/card_images/`
-- **Labels**: Stored in `./assets/image_labels/`
-
-## Set IDs and set name
-Here are the sets that can be fetched:
+Specific setIDs and SetNames for downloading a specific one (10 march 2025):
 ```
 setID  SetName
 
@@ -241,11 +242,74 @@ A1a - Mythical Island
 sv08.5 - Prismatic Evolutions
 A2 - Space-Time Smackdown
 ```
-For a complete list, check the TCGdex API.
+You can also configure image quality by modifying:
+```python
+IMAGE_QUALITY = "low"  # Options: "low", "high"
+IMG_EXTENSION = "png"  # Image file format
+```
+
+## Sets logo download
+
+The second script `set_list_collections_generation.py` organizes sets by series and downloads set logo images.
+
+### Features
+
+- Fetches all Pokemon TCG series
+- Organizes sets by their respective series
+- Creates a structured JSON for collection display
+- Downloads set logo images
+- Tracks progress with progress bars
+
+### Directory Structure
+
+```
+├── set_logos_generated_json_dir/  # Generated collection data
+│   └── collections_logo_list.json
+├── assets/
+│   └── set_logos/                 # Set logo images
+│       └── setID_setName.png
+```
+
+### Usage
+
+Simply run the script without any parameters:
+
+```bash
+python set_collection_generator.py
+```
+
+This will:
+1. Generate the collections list JSON file
+2. Download all set logo images
+
+## Functions
+
+### Card Data Downloader
+
+- `singleSetRequest(setId, setName, metadata_dir)`: Downloads metadata for a specific set
+- `ImgDownload(setId, setName, metadata_dir)`: Downloads card images for a set
+- `generateLabels(setId, setName, metadata_dir)`: Creates label files for each card
+
+### Set Collection Generator
+
+- `set_list_collections_generation()`: Creates a structured JSON of all sets organized by series
+- `download_sets_logo_images(json_path)`: Downloads logo images for all sets
 
 ## Error Handling
-- If a request fails, the script logs the error and moves to the next card/set.
-- Skips downloading images that already exist in the destination folder.
 
+Both scripts include basic error handling to manage:
+- Connection issues
+- Missing images or data
+- API request failures
 
+## Notes
+
+- The collection generator includes a TODO comment about filtering unwanted sets
+- Logo images are stored with combined ID and name for unique identification
+- All files are stored in a structured format for easy access in applications
+
+## License
+
+This code is provided for educational and personal use.
+Citation is appreciated.
 
