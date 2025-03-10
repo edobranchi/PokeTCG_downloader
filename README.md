@@ -7,8 +7,8 @@ Useful to create a base dataset to work with pokemon cards images.
 ## Overview
 
 The repository includes two main scripts:
-1. **Card Downloader** (`card_images_and_labels_download.py`) - Downloads card metadata, images, and generates labels for individual cards
-2. **Set Logo Downloader** (`set_list_collections_generation.py`) - Creates organized collection data and downloads set logo images
+1. **_Card Downloader_** (`card_images_and_labels_download.py`) - Downloads card metadata, images, and generates labels for individual cards
+2. **_Set Logo Downloader_** (`set_list_collections_generation.py`) - Creates organized collection data and downloads set logo images
 
 Both scripts utilize the [TCGdex API](https://api.tcgdex.net/) to fetch Pokemon TCG information.
 
@@ -250,7 +250,7 @@ IMAGE_QUALITY = "low"  # Options: "low", "high"
 IMG_EXTENSION = "png"  # Image file format
 ```
 
-## Sets logo download
+## Sets logo downloader
 
 The second script `set_list_collections_generation.py` organizes sets by series and downloads set logo images.
 
@@ -286,13 +286,13 @@ This will:
 
 ## Functions
 
-### Card Data Downloader
+### Card  Downloader
 
 - `singleSetRequest(setId, setName, metadata_dir)`: Downloads metadata for a specific set
 - `ImgDownload(setId, setName, metadata_dir)`: Downloads card images for a set
 - `generateLabels(setId, setName, metadata_dir)`: Creates label files for each card
 
-### Set Collection Generator
+### Sets Logo Downloader
 
 - `set_list_collections_generation()`: Creates a structured JSON of all sets organized by series
 - `download_sets_logo_images(json_path)`: Downloads logo images for all sets
