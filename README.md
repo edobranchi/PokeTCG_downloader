@@ -1,6 +1,8 @@
-# Pokemon TCG Data Processing Scripts
+# Pokemon TCG Images and logos automatic downloader
 
 This repository contains two Python scripts designed to download and process Pokemon Trading Card Game (TCG) data from the TCGdex API. These tools help you create a local database of card metadata, images, and set information for use in applications.
+
+Useful to create a base dataset to work with pokemon cards images.
 
 ## Overview
 
