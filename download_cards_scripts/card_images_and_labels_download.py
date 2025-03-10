@@ -157,9 +157,9 @@ if __name__ == "__main__":
     if setId_to_download == "" and setName_to_download == "":
         for set in sets:
             singleSetRequest(set["id"], set["name"],metadata_dir)
-            #ImgDownload(set["id"], set["name"], metadata_dir)
+            ImgDownload(set["id"], set["name"], metadata_dir)
             generateLabels(set["id"], set["name"],metadata_dir)
     else:
         singleSetRequest(setId_to_download, setName_to_download,metadata_dir)
-        #ImgDownload(setId_to_download, setName_to_download, metadata_dir)
+        ImgDownload(setId_to_download, setName_to_download, metadata_dir)
         generateLabels(setId_to_download, setName_to_download,metadata_dir)
