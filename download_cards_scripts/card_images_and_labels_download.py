@@ -1,5 +1,7 @@
 import json
 import os
+import re
+
 import requests
 from tqdm import tqdm
 
@@ -53,10 +55,14 @@ def ImgDownload(setId, setName, metadata_dir):
                 card_id = card.get("id")
                 card_name = card.get("name")
 
+                file_name=image_url.replace("/","_")
+
                 # Construct file path
                 file_path = os.path.join(image_dir_path,
-                                         f"{card_id}_{card_name}_{IMAGE_QUALITY}.{IMG_EXTENSION}")
+                                         card_name+"-"+(re.sub(r'^https:__assets.tcgdex.net_', '', file_name)))
+
                 file_path = ''.join(file_path.split())
+
 
                 # Skip if the image already exists
                 if os.path.exists(file_path):

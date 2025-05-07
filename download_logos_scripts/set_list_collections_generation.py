@@ -42,12 +42,18 @@ def set_list_collections_generation():
                         logo = sets['logo']
                     else:
                         logo = "---"
+                    if sets.get('symbol') is not None:
+                        symbol = sets['symbol']
+                    else:
+                        symbol = "---"
                     entry['sets'] = entry.get('sets', [])
 
                     entry['sets'].append({
                         'id': sets['id'],
                         'name': sets['name'],
-                        'logo': logo
+                        'logo': logo,
+                        'symbol': symbol,
+                        'cardCount': sets['cardCount']
 
                     })
                     break
