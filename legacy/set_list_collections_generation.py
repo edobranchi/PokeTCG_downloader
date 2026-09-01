@@ -1,7 +1,21 @@
+# ⚠️ DEPRECATED — superseded by refresh_drifted_sets.rebuild_logo_list, which the
+#    orchestrator invokes via `python pipeline.py metadata`. That path has proper
+#    timeouts/retries and matches the current logo-list format+rules. Kept for
+#    history; do not add new callers. See ../README_PIPELINE.md.
 import json
 import os
 import requests
 from tqdm import tqdm
+
+#1
+
+
+
+def get_assets_dir():
+    # Get the directory where the script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up one level to the project root and then into assets
+    return os.path.join(script_dir, "..", "assets")
 
 
 #TODO:pulirlo dai set che non voglio far vedere
@@ -21,7 +35,9 @@ def set_list_collections_generation():
         series_obtained = response.json()
         series_list=[]
         for series in series_obtained:
-            series_list.append({"id":series["id"],"name":series["name"]})
+            if "logo" in series :
+                series_list.append({"id":series["id"],"name":series["name"]})
+            print(series)
 
         #Calls for set lists
         API_URL_ALL_SETS= f"https://api.tcgdex.net/v2/en/sets"
@@ -34,31 +50,33 @@ def set_list_collections_generation():
             API_URL_SINGLE_SET= f"https://api.tcgdex.net/v2/en/sets/{set['id']}"
             response = requests.get(API_URL_SINGLE_SET)
             sets=response.json()
+            print(set)
 
 
             for entry in series_list:
                 if entry['id'] == sets['serie']['id']:
-                    if sets.get('logo') is not None:
-                        logo = sets['logo']
-                    else:
-                        logo = "---"
-                    if sets.get('symbol') is not None:
-                        symbol = sets['symbol']
-                    else:
-                        symbol = "---"
-                    entry['sets'] = entry.get('sets', [])
+                    if sets.get('logo') is not None:# or (sets['id'] =="sv10.5b" or sets['id'] =="me02.5"):
+                        if sets.get('logo') is not None:
+                            logo = sets['logo']
+                        else:
+                            logo = "---"
+                        if sets.get('symbol') is not None:
+                            symbol = sets['symbol']
+                        else:
+                            symbol = "---"
+                        entry['sets'] = entry.get('sets', [])
 
-                    entry['sets'].append({
-                        'id': sets['id'],
-                        'name': sets['name'],
-                        'logo': logo,
-                        'symbol': symbol,
-                        'cardCount': sets['cardCount']
+                        entry['sets'].append({
+                            'id': sets['id'],
+                            'name': sets['name'],
+                            'logo': logo,
+                            'symbol': symbol,
+                            'cardCount': sets['cardCount']
 
-                    })
-                    break
+                        })
+                        break
 
-        generated_json_dir = "set_logos_generated_json_dir"
+        generated_json_dir = os.path.join(get_assets_dir(), "set_logos_generated_json_dir")
         os.makedirs(generated_json_dir, exist_ok=True)
         # collection_page_json="collection_page_json"
         # subfolder_json = os.path.join(generated_json_dir, collection_page_json)
@@ -73,7 +91,7 @@ def set_list_collections_generation():
 
 def download_sets_logo_images(json_path):
 
-    image_logo_path = "../assets/set_logos"
+    image_logo_path = os.path.join(get_assets_dir(), "set_logos")
     os.makedirs(image_logo_path, exist_ok=True)
 
     with open(json_path, "r") as file:
@@ -103,5 +121,5 @@ def download_sets_logo_images(json_path):
 
 if __name__ == "__main__":
     set_list_collections_generation()
-    json_path="set_logos_generated_json_dir/collections_logo_list.json"
-    download_sets_logo_images(json_path)
+    json_path = os.path.join(get_assets_dir(), "set_logos_generated_json_dir", "collections_logo_list.json")
+    #download_sets_logo_images(json_path)
